@@ -1,10 +1,11 @@
+#! /bin/csh
+
 ###########################################################################################
 # This script can rename the HIS to HIE/HIP/HID (otherwise there would                    #
 # be errors when using tleap). It is suitable for pdb files re-edited from molprobity.    #
 # Usage: renaming_HIS.sh old.pdb new.pdb                                                  #
 ###########################################################################################
 
-#! /bin/csh
 #Usage: csh HISrename.csh old.pdb new.pdb
 set i = 1
 set j = 1
