@@ -1,10 +1,10 @@
+#! /bin/bash
+
 #######################################################################
 #  This script can extract MMGBSA vs frame from output file named     #
 #  "mmgbsa.com.out", "mmgbsa.lig.out", and "mmgbsa.rec.out" (energy   #
 #  output for complex, ligand and receptor, respectively.             #
 #######################################################################
-
-#! /bin/bash
  
 LIST='com lig rec'
 
