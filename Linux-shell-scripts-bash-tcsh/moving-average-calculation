@@ -1,0 +1,44 @@
+#! /usr/bin/tcsh
+######################################################################
+# usage: moving-average-calculation.sh start_x end_x cutoff
+# start_x and end_x are the range of x axis you want to cover
+# cutoff is the bin size for the average calculation
+#####################################################################
+
+echo "need to modify this script if u need an accuracy better than 0.01."
+
+foreach n (`ls ../*out ../*dat | grep -v "No such file or directory"`)
+
+set fn = $n
+set out = `echo "avg.${n}" | sed 's/..\///'`
+if ($#argv != 3 && $#argv != 0) then
+echo "usage: sh.loop.avg.1d.sh start_value end_value interval_value"
+echo "exit !"
+exit 0
+else if ($#argv == 0) then
+set sv = 1
+set ev = 18.5
+set inl = 0.2
+else if ($#argv == 3) then
+set sv = $1
+set ev = $2
+set inl = $3
+endif
+set cut = `echo "scale=3;${inl}/2"|bc`
+
+rm -v $out
+
+set j = -9999
+set i = `echo "scale=3;$sv" | bc`
+echo $out
+while (`echo "scale=0;($j-$ev)*999999/1" | bc` < 0)
+set j = `echo "scale=3;${i}+${inl}" | bc`
+set k = `echo "scale=3;(${i}+${j})/2" | bc`
+
+cat $fn | awk 'BEGIN {x=0;y=0} {if($1>'"$i"' && $1<='"$j"'){x=x+1;y=y+$2}} END {if (x>9) {print '"$k"',y/x}}' >> $out
+
+echo $j
+set i = $j
+end
+
+end
