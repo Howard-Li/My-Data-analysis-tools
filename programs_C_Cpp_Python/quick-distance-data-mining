@@ -1,0 +1,95 @@
+#include <math.h>
+#include <stdio.h>
+#include <string>
+
+using namespace std;
+
+/*
+* quickly extract atom distance data from large trajectory file.
+* can be 1000 times faster than ptraj! 
+*
+*/
+
+
+int main (int argc, char *argv[]) {
+//argv: 
+//1: traj file; 
+//2: total #atom; must be int.
+//3: first set of atoms indices; must be int.
+//4: second set of atoms indices; cannot be same as argv[3].
+
+   // xxxx to delete
+
+  int ENTRY_SIZE = 8; // the length of the entries in the traj file.
+  int LINE_SIZE = 80; // the length of each lines in the traj file.
+  int ATOM_POS_SIZE = ENTRY_SIZE*3; // each atom has x,y,z values representing position 
+                                  //so the length of each atom's position data is 24.
+
+  int tot, pos1, pos2; // argv 2, 3 and 4
+  int jump1, jump2;  // the jump of the cursor, see below
+  long size;  // size of the traj file
+  int ct = 0; //output row number
+  float x1 , y1, z1, x2, y2, z2; // 3d positional data of the two specified atoms
+  float dist ; //output distance data
+
+
+  sscanf (argv[2],"%d",&tot);
+  sscanf (argv[3],"%d",&pos1);
+  sscanf (argv[4],"%d",&pos2);
+
+  if (pos1>pos2) swap(pos1,pos2); // just make sure pos1 is smaller than pos2
+
+  pos1=(pos1-1)*ATOM_POS_SIZE; pos2=(pos2-1)*ATOM_POS_SIZE; 
+  // end of each line has a '\n' char so need to add (pos)/LINE_SIZE 
+  pos1 += pos1/LINE_SIZE ; pos2 += pos2/LINE_SIZE ;
+  tot*=ATOM_POS_SIZE;
+  
+  jump1 = pos2 - pos1 - ATOM_POS_SIZE;
+  // - ATOM_POS_SIZE because after fscanf reads, the offset forwards ATOM_POS_SIZE. 
+  //so need to get it back .
+
+  jump2 = tot + tot/LINE_SIZE - 2*ATOM_POS_SIZE - jump1;
+  // end of each line has a '\n' char so need to add (tot)/LINE_SIZE 
+  //now jump2 + jump1 = tot + tot/LINE_SIZE - 2*ATOM_POS_SIZE
+  //because fscanf has read two atoms' position data.
+  if (tot/LINE_SIZE) jump2++; // end of each frame has a '\n' too.
+
+
+  FILE *pFileTraj = fopen (argv[1],"r");
+
+  if (pFileTraj!=NULL)
+  {
+	  fseek(pFileTraj,-1,SEEK_END);
+	  size = ftell(pFileTraj);
+
+	  fseek(pFileTraj,0,SEEK_SET);
+	  char buffer[100];
+	  fgets(buffer, 100, pFileTraj); //skip first line
+	  //float ans[] = new float[];
+	  float x1 , y1, z1, x2, y2, z2, dist ;
+	  fseek(pFileTraj, pos1, SEEK_CUR);
+
+	  while(ftell(pFileTraj)<size){  //don't use !feof(). fseek can exceed eof.
+		  ct++;
+		  fscanf(pFileTraj,"%f",&x1);
+		  fscanf(pFileTraj,"%f",&y1);
+		  fscanf(pFileTraj,"%f",&z1);
+		  //printf("%f  %f  %f ",x1,y1,z1);
+		  fseek(pFileTraj, jump1, SEEK_CUR);
+		  fscanf(pFileTraj,"%f",&x2);
+		  fscanf(pFileTraj,"%f",&y2);
+		  fscanf(pFileTraj,"%f",&z2);
+		  fseek(pFileTraj, jump2, SEEK_CUR);
+		  //printf("%f  %f  %f \n",x2,y2,z2);
+		  
+		  dist = sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2));
+		  printf("%d\t%f \n",ct, dist);
+		  //if (ct==65) break;
+	  }
+	  fclose(pFileTraj);
+  }
+  //printf("%ld \n",jump1+jump2);
+  //printf("%d \n",ct);
+
+  return 0;
+}
